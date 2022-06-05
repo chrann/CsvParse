@@ -3,8 +3,9 @@
  */
 package xyz.chranness;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,24 +18,38 @@ import java.util.Iterator;
  */
 public class MyCsvIterator implements Iterator<MyCsvRow>, Iterable<MyCsvRow> {
 
-	private BufferedReader br;
+	private BufferedInputStream bis;
 	private MyCsvParser parser;
 
 	public MyCsvIterator(Path file, MyCsvParser parser, Charset charset) throws IOException {
-		BufferedReader br = Files.newBufferedReader(file, charset);
-		this.br = br;
+		InputStream is = Files.newInputStream(file);
+		BufferedInputStream bis = new BufferedInputStream(is);
+		bis.mark(3);
+		byte[] bytes = new byte[3];
+		bis.read(bytes);
+		for (byte b : bytes) {
+			System.out.println(b);
+		}
+		if (bytes[0] == -17 && bytes[1] == -69 && bytes[2] == -65) {
+			// BOM付きUTF8なのでマークを戻さず実行
+			charset = StandardCharsets.UTF_8;
+		} else {
+			bis.reset();
+		}
+		this.bis = bis;
 		this.parser = parser;
 
 	}
 
-	public MyCsvIterator(Path file, MyCsvParser parser) throws IOException {
-		this(file, parser, StandardCharsets.UTF_8);
-	}
-
 	@Override
 	public boolean hasNext() {
+		bis.mark(0);
 		try {
-			return this.br.ready();
+			if (bis.read() == -1) {
+				return false;
+			}
+			bis.reset();
+			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false;
@@ -43,11 +58,9 @@ public class MyCsvIterator implements Iterator<MyCsvRow>, Iterable<MyCsvRow> {
 
 	@Override
 	public MyCsvRow next() {
-		String str = null;
 		MyCsvRow row = new MyCsvRow();
 		try {
-			str = br.readLine();
-			this.parser.parseLine(str, row);
+			this.parser.parseLine(bis, row);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
