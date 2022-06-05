@@ -82,7 +82,7 @@ public class Main {
 				while (it.hasNext()) {
 					i++;
 					MyCsvRow row = it.next();
-					pw.write(row + "\n");
+					pw.write(row.toCsvString() + "\n");
 				}
 			} catch (IOException e) {
 				e.printStackTrace();

@@ -9,4 +9,20 @@ public class MyCsv extends ArrayList<MyCsvRow> {
 			this.add(r);
 		}
 	}
+	
+	public String toCsvString() {
+		
+		StringBuilder sb = new StringBuilder();
+		int i = -1;
+		for (MyCsvRow row : this) {
+			i++;
+			if (i != 0) {
+				sb.append(",");
+			}
+
+			sb.append(row.toCsvString());
+		}
+		return sb.toString();
+	}
+
 }
