@@ -590,6 +590,13 @@ public class MyCsvParser {
 			}
 			// ダブルクォート以外ならずっとループ
 			while (b != '"') {
+				// ただし終了文字を除く
+				if (b == -1) {
+					String str = buff2String(buff[0]);
+					str = str.substring(1, str.length() - 1);
+					row.add(str);
+					return;
+				}
 				// エスケープ文字が来たら後の文字を取得
 				if (b == '\\') {
 					putInBuff((byte) bis.read(), buff);
@@ -641,20 +648,27 @@ public class MyCsvParser {
 			if (b == '\\') {
 				putInBuff((byte) bis.read(), buff);
 			}
-			// ダブルクォート以外ならずっとループ
+			// シングルクォート以外ならずっとループ
 			while (b != '\'') {
+				// ただし終了文字を除く
+				if (b == -1) {
+					String str = buff2String(buff[0]);
+					str = str.substring(1, str.length() - 1);
+					row.add(str);
+					return;
+				}
 				// エスケープ文字が来たら後の文字を取得
 				if (b == '\\') {
 					putInBuff((byte) bis.read(), buff);
 				}
 				putInBuff(b = (byte) bis.read(), buff);
 			}
-			// ダブルクォートが来た
+			// シングルクォートが来た
 			putInBuff(b = (byte) bis.read(), buff);
 			while (isSpace(b)) {
 				putInBuff(b = (byte) bis.read(), buff);
 			}
-			// ダブルクォートの後、次に来た空白以外の文字が ,\r\n\0 のいずれでもないならany処理
+			// シングルクォートの後、次に来た空白以外の文字が ,\r\n\0 のいずれでもないならany処理
 			if (b == -1 || b == '\n') {
 				String str = buff2String(buff[0]);
 				str = str.substring(0, str.length() - 1).trim();
